@@ -2,23 +2,16 @@ package main
 
 import (
 	"fmt"
-	"log"
-	"net"
 	"net/http"
 	"strings"
+
+	"google.golang.org/appengine"
 )
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
 			http.NotFound(w, r)
-			return
-		}
-
-		ip, _, err := net.SplitHostPort(r.RemoteAddr)
-		if err != nil {
-			log.Println("Failed to parse IP")
-			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
@@ -29,8 +22,8 @@ func main() {
 			return
 		}
 
-		fmt.Fprintln(w, ip)
+		fmt.Fprintln(w, r.RemoteAddr)
 	})
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	appengine.Main()
 }

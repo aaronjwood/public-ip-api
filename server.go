@@ -1,10 +1,11 @@
 package main
 
 import (
-	"net/http"
 	"fmt"
 	"log"
 	"net"
+	"net/http"
+	"strings"
 )
 
 func main() {
@@ -18,6 +19,13 @@ func main() {
 		if err != nil {
 			log.Println("Failed to parse IP")
 			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		forwarded := r.Header.Get("X-Forwarded-For")
+		if forwarded != "" {
+			originalIp := strings.Split(forwarded, ", ")[0]
+			fmt.Fprintln(w, originalIp)
 			return
 		}
 

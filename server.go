@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strings"
 
-	"google.golang.org/appengine"
 	"net"
 )
 
@@ -25,8 +24,8 @@ func main() {
 			// The official defined format is a comma space separated list of IP addresses.
 			forwarded := r.Header.Get("X-Forwarded-For")
 			if forwarded != "" {
-				originalIp := strings.Split(forwarded, ", ")[0]
-				fmt.Fprintln(w, originalIp)
+				originalIP := strings.Split(forwarded, ", ")[0]
+				fmt.Fprintln(w, originalIP)
 				return
 			}
 
@@ -38,6 +37,4 @@ func main() {
 		// If we could not split on an IP:Port then give back the raw remote address contained in the request.
 		fmt.Fprintln(w, r.RemoteAddr)
 	})
-
-	appengine.Main()
 }

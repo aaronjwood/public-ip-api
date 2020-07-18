@@ -2,10 +2,15 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 
 	"net"
+)
+
+const (
+	port = 5001
 )
 
 // Our server that detects the connecting public IP.
@@ -37,4 +42,7 @@ func main() {
 		// If we could not split on an IP:Port then give back the raw remote address contained in the request.
 		fmt.Fprintln(w, r.RemoteAddr)
 	})
+
+	log.Printf("Listening on port %d", port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), nil))
 }

@@ -21,26 +21,24 @@ func main() {
 			return
 		}
 
-		// Depending on our App Engine deployment type we may or may not have anything to split on.
 		ip, _, err := net.SplitHostPort(r.RemoteAddr)
-		if err == nil {
-
-			// Proxy awareness.
-			// The official defined format is a comma space separated list of IP addresses.
-			forwarded := r.Header.Get("X-Forwarded-For")
-			if forwarded != "" {
-				originalIP := strings.Split(forwarded, ", ")[0]
-				fmt.Fprintln(w, originalIP)
-				return
-			}
-
-			// If no proxy was found then give the parsed IP.
-			fmt.Fprintf(w, ip)
+		if err != nil {
+			// If we could not split on an IP:Port then give back the raw remote address contained in the request.
+			fmt.Fprintln(w, r.RemoteAddr)
 			return
 		}
 
-		// If we could not split on an IP:Port then give back the raw remote address contained in the request.
-		fmt.Fprintln(w, r.RemoteAddr)
+		// Proxy awareness.
+		// The official defined format is a comma space separated list of IP addresses.
+		forwarded := r.Header.Get("X-Forwarded-For")
+		if forwarded != "" {
+			originalIP := strings.Split(forwarded, ", ")[0]
+			fmt.Fprintln(w, originalIP)
+			return
+		}
+
+		// If no proxy was found then give the parsed IP.
+		fmt.Fprintf(w, ip)
 	})
 
 	log.Printf("Listening on port %d", port)

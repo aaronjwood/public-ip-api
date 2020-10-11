@@ -1,3 +1,3 @@
 module github.com/aaronjwood/public-ip-api
 
-go 1.14
+go 1.15

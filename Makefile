@@ -5,3 +5,12 @@ build:
 .PHONY: image
 image:
 	@docker build -t public-ip-api .
+
+.PHONY: test
+test:
+	@go test -v -cover ./...
+
+.PHONY: coverage
+coverage:
+	@go test -v -coverprofile=./cov.out
+	@sonar-scanner

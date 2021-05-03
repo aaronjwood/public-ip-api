@@ -1,3 +1,4 @@
+use public_ip_api::ThreadPool;
 use std::io;
 use std::io::prelude::*;
 use std::io::BufReader;
@@ -10,14 +11,22 @@ const FORWARDED_HEADER_KEY: &str = "x-forwarded-for";
 const RESPONSE_OK: &str = "HTTP/1.1 200 OK\r\n\r\n";
 const RESPONSE_INTERNAL_SERVER_ERROR: &str = "HTTP/1.1 200 OK\r\n\r\n";
 
-fn main() {
-    let listener = TcpListener::bind(format!("{}:{}", ADDR, PORT)).unwrap();
-    for stream in listener.incoming() {
-        let stream = stream.unwrap();
-        if let Err(err) = handle_connection(stream) {
-            println!("{}", err);
+fn main() -> io::Result<()> {
+    TcpListener::bind(format!("{}:{}", ADDR, PORT)).and_then(|listener| {
+        let pool = ThreadPool::new(32);
+        for stream in listener.incoming() {
+            let tcp_stream = stream?;
+            pool.execute(|| {
+                if let Err(err) = handle_connection(tcp_stream) {
+                    println!("{}", err);
+                }
+            });
         }
-    }
+
+        Ok(listener)
+    })?;
+
+    Ok(())
 }
 
 fn get_header<'a>(key: &str, line: &'a str) -> Result<&'a str, ()> {
@@ -54,7 +63,7 @@ fn handle_connection(stream: TcpStream) -> Result<(), io::Error> {
             if x != "" {
                 ip = x.to_string();
             }
-        },
+        }
         Err(_) => {
             send_response(stream, RESPONSE_INTERNAL_SERVER_ERROR)?;
             return Ok(());

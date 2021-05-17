@@ -23,6 +23,7 @@ async fn handler(req: HttpRequest) -> String {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    println!("starting server on {}:{}", ADDR, PORT);
     HttpServer::new(|| App::new().route("/", web::get().to(handler)))
         .bind(format!("{}:{}", ADDR, PORT))?
         .run()

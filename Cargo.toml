@@ -6,3 +6,6 @@ edition = "2018"
 
 [dependencies]
 actix-web = "3"
+
+[[bin]]
+name = "public-ip-api"

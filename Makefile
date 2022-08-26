@@ -4,4 +4,4 @@ build:
 
 .PHONY: image
 image:
-	@docker build -t public-ip-api .
+	@docker build --pull -t public-ip-api .

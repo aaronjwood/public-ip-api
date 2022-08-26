@@ -5,7 +5,7 @@ authors = ["Aaron Wood <aaronjwood@gmail.com>"]
 edition = "2018"
 
 [dependencies]
-actix-web = "3"
+actix-web = "4"
 
 [[bin]]
 name = "public-ip-api"

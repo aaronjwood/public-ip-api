@@ -1,31 +1,32 @@
-use actix_web::{web, App, HttpRequest, HttpServer};
+use tiny_http::{Response, Server};
 
 const ADDR: &str = "0.0.0.0";
 const PORT: u32 = 5001;
+const FORWARDED: &str = "Forwarded";
+const FORWARDED_FOR: &str = "X-Forwarded-For";
 
-async fn handler(req: HttpRequest) -> String {
-    match req.connection_info().realip_remote_addr() {
-        Some(ip) => match ip.split(":").next() {
-            Some(part) => part.to_string(),
-            None => {
-                let err = "failed to parse IP";
-                println!("{}", err);
-                err.to_owned()
+fn main() {
+    println!("starting server on {}:{}", ADDR, PORT);
+    let server = Server::http(format!("{}:{}", ADDR, PORT)).unwrap();
+
+    for request in server.incoming_requests() {
+        let remote_addr = request.remote_addr();
+        let ip = remote_addr.ip();
+        let mut real_ip = String::from("");
+        for header in request.headers() {
+            if header.field.equiv(FORWARDED_FOR) || header.field.equiv(FORWARDED) {
+                real_ip = header.value.to_string();
             }
-        },
-        None => {
-            let err = "failed to get remote address";
-            println!("{}", err);
-            err.to_owned()
+        }
+
+        if real_ip.is_empty() {
+            real_ip = ip.to_string();
+        }
+
+        let response = Response::from_string(real_ip);
+        match request.respond(response) {
+            Ok(()) => (),
+            Err(err) => println!("failed to send request: {}", err),
         }
     }
-}
-
-#[actix_web::main]
-async fn main() -> std::io::Result<()> {
-    println!("starting server on {}:{}", ADDR, PORT);
-    HttpServer::new(|| App::new().route("/", web::get().to(handler)))
-        .bind(format!("{}:{}", ADDR, PORT))?
-        .run()
-        .await
 }
